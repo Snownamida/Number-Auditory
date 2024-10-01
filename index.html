@@ -4,43 +4,87 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>数字听力练习</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
   </head>
   <body>
-    <h1>西语数字听力练习</h1>
-    <p>欢迎使用西语数字听力练习。在文本框中输入你听到的数字，按回车键提交。</p>
+    <div class="container">
+      <h1 class="text-center">西语数字听力练习</h1>
+      <p class="text-center">
+        欢迎使用西语数字听力练习。在文本框中输入你听到的数字，按回车键提交。
+      </p>
 
-    <p class="answer"></p>
+      <!-- &#8203;是一个零宽空格,占位用的 -->
+      <p class="text-center h1" id="answer">&#8203;</p>
 
-    <input type="text" class="txt" />
+      <div class="d-flex justify-content-center">
+        <input type="text" id="input" class="form-control-lg" />
+      </div>
 
-    <div>
-      <input type="range" min="0.5" max="2" value="1" step="0.1" id="rate" />
-      <label for="rate">速率</label>
-      <span class="rate-value">1</span>
+      <div class="row">
+        <div class="col-12 col-md-6 d-flex justify-content-center">
+          <div>
+            <div>
+              <input
+                type="range"
+                min="0.5"
+                max="2"
+                value="1"
+                step="0.1"
+                id="rate"
+              />
+              <label for="rate">速率</label>
+              <span class="rate-value">1</span>
+            </div>
+
+            <div>
+              <input
+                type="range"
+                min="0"
+                max="2"
+                value="1"
+                step="0.1"
+                id="pitch"
+              />
+              <label for="pitch">音调</label>
+              <span class="pitch-value">1</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6 d-flex justify-content-center">
+          <div>
+            <div>
+              <input type="checkbox" id="read_only_no_input" />
+              <label for="read_only_no_input">仅输入框为空时按回车才朗读</label>
+            </div>
+
+            <div>
+              <input type="checkbox" id="read_prefix" />
+              <label for="read_prefix">朗读时添加引导词</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-center">
+        <select></select>
+      </div>
+
+      <p class="text-center">
+        Author: <a href="https://github.com/Snownamida">Jixiang SUN</a>
+      </p>
     </div>
-
-    <div>
-      <input type="range" min="0" max="2" value="1" step="0.1" id="pitch" />
-      <label for="pitch">音调</label>
-      <span class="pitch-value">1</span>
-    </div>
-
-    <div>
-      <input type="checkbox" id="read_only_no_input" />
-      <label for="read_only_no_input">仅输入框为空时按回车才朗读</label>
-    </div>
-
-    <div>
-      <input type="checkbox" id="read_prefix" />
-      <label for="read_prefix">朗读时添加引导词</label>
-    </div>
-
-    <div>
-      <select></select>
-    </div>
-
-    <p>Author: <a href="https://github.com/Snownamida">Jixiang SUN</a></p>
 
     <script src="index.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
   </body>
 </html>

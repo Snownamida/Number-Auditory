@@ -1,8 +1,8 @@
 const synth = window.speechSynthesis;
 
-const inputTxt = document.querySelector(".txt");
+const inputTxt = document.querySelector("#input");
 const voiceSelect = document.querySelector("select");
-const answer = document.querySelector(".answer");
+const answer = document.querySelector("#answer");
 
 const pitch = document.querySelector("#pitch");
 const pitchValue = document.querySelector(".pitch-value");
