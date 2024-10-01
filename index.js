@@ -26,7 +26,7 @@ function populateVoiceList() {
 
     option.setAttribute("data-lang", voice.lang);
     option.setAttribute("data-name", voice.name);
-    if (voice.name === "Google español") {
+    if (voice.lang === "es-ES") {
       option.setAttribute("selected", true);
     }
     // console.log(voice);
