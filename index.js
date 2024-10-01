@@ -9,6 +9,9 @@ const pitchValue = document.querySelector(".pitch-value");
 const rate = document.querySelector("#rate");
 const rateValue = document.querySelector(".rate-value");
 
+const read_only_no_input = document.querySelector("#read_only_no_input");
+const read_prefix = document.querySelector("#read_prefix");
+
 let voices = [];
 
 let theNumber = Math.floor(Math.random() * 101).toString();
@@ -101,7 +104,9 @@ function numberToSpanish(num) {
 console.log(numberToSpanish(21)); // 输出 "veintiuno"
 
 function read(text) {
-  const utterThis = new SpeechSynthesisUtterance("El nombre es :" + text);
+  const utterThis = new SpeechSynthesisUtterance(
+    (read_prefix.checked ? "El nombre es :" : "") + text
+  );
   const selectedOption =
     voiceSelect.selectedOptions[0].getAttribute("data-name");
   for (const voice of voices) {
@@ -136,7 +141,9 @@ document.addEventListener("keydown", (event) => {
 
     theNumber = Math.floor(Math.random() * 101).toString();
 
-    read(theNumber);
+    if (!read_only_no_input.checked) {
+      read(theNumber);
+    }
 
     inputTxt.value = "";
     inputTxt.focus();

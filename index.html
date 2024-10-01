@@ -3,28 +3,41 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>数字听力练习</title>
   </head>
   <body>
     <h1>西语数字听力练习</h1>
-    <p>
-      欢迎使用西语数字听力练习。在文本框中输入你听到的数字，按回车键提交。
-    </p>
+    <p>欢迎使用西语数字听力练习。在文本框中输入你听到的数字，按回车键提交。</p>
+
     <p class="answer"></p>
-    <div>
-      <label for="rate">Rate</label>
-      <input type="range" min="0.5" max="2" value="1" step="0.1" id="rate" />
-      <div class="rate-value">1</div>
-      <div class="clearfix"></div>
-    </div>
-    <div>
-      <label for="pitch">Pitch</label>
-      <input type="range" min="0" max="2" value="1" step="0.1" id="pitch" />
-      <div class="pitch-value">1</div>
-      <div class="clearfix"></div>
-    </div>
+
     <input type="text" class="txt" />
-    <select></select>
+
+    <div>
+      <input type="range" min="0.5" max="2" value="1" step="0.1" id="rate" />
+      <label for="rate">速率</label>
+      <span class="rate-value">1</span>
+    </div>
+
+    <div>
+      <input type="range" min="0" max="2" value="1" step="0.1" id="pitch" />
+      <label for="pitch">音调</label>
+      <span class="pitch-value">1</span>
+    </div>
+
+    <div>
+      <input type="checkbox" id="read_only_no_input" />
+      <label for="read_only_no_input">仅输入框为空时按回车才朗读</label>
+    </div>
+
+    <div>
+      <input type="checkbox" id="read_prefix" />
+      <label for="read_prefix">朗读时添加引导词</label>
+    </div>
+
+    <div>
+      <select></select>
+    </div>
 
     <script src="index.js"></script>
   </body>
