@@ -29,7 +29,7 @@ function populateVoiceList() {
 
     option.setAttribute("data-lang", voice.lang);
     option.setAttribute("data-name", voice.name);
-    if (voice.lang === "es-ES") {
+    if (voice.lang === "es-ES" || voice.lang === "es_ES") {
       option.setAttribute("selected", true);
     }
     // console.log(voice);
