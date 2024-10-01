@@ -8,6 +8,8 @@ const pitch = document.querySelector("#pitch");
 const pitchValue = document.querySelector(".pitch-value");
 const rate = document.querySelector("#rate");
 const rateValue = document.querySelector(".rate-value");
+const num_range = document.querySelector("#num_range");
+const num_range_value = document.querySelector(".num_range-value");
 
 const read_only_no_input = document.querySelector("#read_only_no_input");
 const read_prefix = document.querySelector("#read_prefix");
@@ -139,7 +141,9 @@ document.addEventListener("keydown", (event) => {
       answer.style.color = "red";
     }
 
-    theNumber = Math.floor(Math.random() * 101).toString();
+    theNumber = Math.floor(
+      Math.random() * (Number(num_range.value) + 1)
+    ).toString();
 
     if (!read_only_no_input.checked) {
       read(theNumber);
@@ -158,4 +162,11 @@ pitch.onchange = () => {
 
 rate.onchange = () => {
   rateValue.textContent = rate.value;
+};
+
+num_range.onchange = () => {
+  num_range_value.textContent = num_range.value;
+  theNumber = Math.floor(
+    Math.random() * (Number(num_range.value) + 1)
+  ).toString();
 };
