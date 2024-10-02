@@ -56,6 +56,8 @@ if (speechSynthesis.onvoiceschanged !== undefined) {
 }
 
 function numberToSpanish(num) {
+  num = Number(num);
+
   const units = [
     "",
     "uno",
@@ -188,7 +190,6 @@ document.addEventListener("keydown", (event) => {
       inputTxt.focus();
       return;
     }
-
     answer.innerHTML = `您输入的是：${inputTxt.value}
     <br>正确答案是：${theNumber} (${numberToSpanish(theNumber)})`;
 
