@@ -8,16 +8,32 @@ const pitch = document.querySelector("#pitch");
 const pitchValue = document.querySelector(".pitch-value");
 const rate = document.querySelector("#rate");
 const rateValue = document.querySelector(".rate-value");
-const num_range = document.querySelector("#num_range");
-const num_range_value = document.querySelector(".num_range-value");
+const rangeMin = document.querySelector("#range-min");
+const rangeMax = document.querySelector("#range-max");
 
 const read_only_no_input = document.querySelector("#read_only_no_input");
 const read_prefix = document.querySelector("#read_prefix");
+const decimal = document.querySelector("#decimal");
+const useComma = document.querySelector("#use-comma");
 
 let voices = [];
 let voices_got = false;
 
-let theNumber = Math.floor(Math.random() * 101).toString();
+let theNumber = "";
+
+function randomlyChangeNumber() {
+  theNumber = (
+    Number(rangeMin.value) +
+    Math.floor(
+      Math.random() *
+        (Number(rangeMax.value) - Number(rangeMin.value) + 1) *
+        (decimal.checked ? 100 : 1)
+    ) /
+      (decimal.checked ? 100 : 1)
+  ).toString();
+}
+
+randomlyChangeNumber();
 
 function populateVoiceList() {
   if (voices_got) {
@@ -84,7 +100,7 @@ function numberToSpanish(num) {
   const tens = [
     "",
     "",
-    "veinte",
+    "",
     "treinta",
     "cuarenta",
     "cincuenta",
@@ -95,7 +111,7 @@ function numberToSpanish(num) {
   ];
 
   const specialTens = [
-    "",
+    "veinte",
     "veintiuno",
     "veintidós",
     "veintitrés",
@@ -127,45 +143,68 @@ function numberToSpanish(num) {
 
   let words = [];
 
+  // Handle decimal part
+  const [integerPart, decimalPart] = num.toString().split(".");
+
+  // Handle integer part
+  let intNum = Number(integerPart);
+
   // Handle millions
-  if (num >= 1000000) {
-    const millionPart = Math.floor(num / 1000000);
+  if (intNum >= 1000000) {
+    const millionPart = Math.floor(intNum / 1000000);
     words.push(numberToSpanish(millionPart) + " " + thousands[1]);
-    num %= 1000000;
+    intNum %= 1000000;
   }
 
   // Handle thousands
-  if (num >= 1000) {
-    const thousandPart = Math.floor(num / 1000);
+  if (intNum >= 1000) {
+    const thousandPart = Math.floor(intNum / 1000);
     words.push(numberToSpanish(thousandPart) + " " + thousands[0]);
-    num %= 1000;
+    intNum %= 1000;
   }
 
   // Handle hundreds
-  if (num >= 100) {
-    const hundredPart = Math.floor(num / 100);
+  if (intNum >= 100) {
+    const hundredPart = Math.floor(intNum / 100);
     words.push(hundreds[hundredPart]);
-    num %= 100;
+    intNum %= 100;
   }
 
   // Handle tens
-  if (num >= 30 || num == 20) {
-    const tenPart = Math.floor(num / 10);
+  if (intNum >= 30) {
+    const tenPart = Math.floor(intNum / 10);
     words.push(tens[tenPart]);
-    num %= 10;
-    if (num > 0) {
-      words.push(units[num]);
+    intNum %= 10;
+    if (intNum > 0) {
+      words.push(units[intNum]);
     }
-  } else if (num >= 20) {
-    words.push(specialTens[num - 20]);
-  } else if (num >= 1) {
-    words.push(units[num]);
+  } else if (intNum >= 20) {
+    words.push(specialTens[intNum - 20]);
+  } else if (intNum >= 1) {
+    words.push(units[intNum]);
+  }
+
+  // Handle decimal part (if exists)
+  if (decimalPart) {
+    words.push("coma"); // Spanish uses "coma" instead of "punto" for decimal
+    if (decimalPart.length === 2) {
+      // If the decimal part has two digits, treat it as a whole number
+      words.push(numberToSpanish(Number(decimalPart)));
+    } else {
+      // Otherwise, read each digit one by one
+      for (let digit of decimalPart) {
+        words.push(units[Number(digit)]);
+      }
+    }
   }
 
   return words.join(" ").trim();
 }
 
 function read(text) {
+  if (useComma.checked) {
+    text = text.replace(".", ",");
+  }
   const utterThis = new SpeechSynthesisUtterance(
     (read_prefix.checked ? "El nombre es :" : "") + text
   );
@@ -199,9 +238,7 @@ document.addEventListener("keydown", (event) => {
       answer.style.color = "red";
     }
 
-    theNumber = Math.floor(
-      Math.random() * (Number(num_range.value) + 1)
-    ).toString();
+    randomlyChangeNumber();
 
     if (!read_only_no_input.checked) {
       read(theNumber);
@@ -222,9 +259,14 @@ rate.onchange = () => {
   rateValue.textContent = rate.value;
 };
 
-num_range.onchange = () => {
-  num_range_value.textContent = num_range.value;
-  theNumber = Math.floor(
-    Math.random() * (Number(num_range.value) + 1)
-  ).toString();
+rangeMax.onchange = () => {
+  randomlyChangeNumber();
+};
+
+rangeMin.onchange = () => {
+  randomlyChangeNumber();
+};
+
+decimal.onchange = () => {
+  randomlyChangeNumber();
 };
