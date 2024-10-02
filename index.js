@@ -45,8 +45,8 @@ if (speechSynthesis.onvoiceschanged !== undefined) {
 }
 
 function numberToSpanish(num) {
-  const unidades = [
-    "cero",
+  const units = [
+    "",
     "uno",
     "dos",
     "tres",
@@ -56,8 +56,6 @@ function numberToSpanish(num) {
     "siete",
     "ocho",
     "nueve",
-  ];
-  const decenas = [
     "diez",
     "once",
     "doce",
@@ -69,7 +67,8 @@ function numberToSpanish(num) {
     "dieciocho",
     "diecinueve",
   ];
-  const decenasSuperiores = [
+
+  const tens = [
     "",
     "",
     "veinte",
@@ -82,28 +81,77 @@ function numberToSpanish(num) {
     "noventa",
   ];
 
-  if (num < 10) {
-    return unidades[num];
-  } else if (num < 20) {
-    return decenas[num - 10];
-  } else if (num < 30) {
-    if (num === 20) {
-      return "veinte";
-    } else {
-      return `veinti${unidades[num - 20]}`;
-    }
-  } else if (num < 100) {
-    const unidad = num % 10;
-    const decena = Math.floor(num / 10);
-    return unidad === 0
-      ? decenasSuperiores[decena]
-      : `${decenasSuperiores[decena]} y ${unidades[unidad]}`;
-  } else {
-    return "Número demasiado grande";
+  const specialTens = [
+    "",
+    "veintiuno",
+    "veintidós",
+    "veintitrés",
+    "veinticuatro",
+    "veinticinco",
+    "veintiséis",
+    "veintisiete",
+    "veintiocho",
+    "veintinueve",
+  ];
+
+  const hundreds = [
+    "",
+    "cien",
+    "doscientos",
+    "trescientos",
+    "cuatrocientos",
+    "quinientos",
+    "seiscientos",
+    "setecientos",
+    "ochocientos",
+    "novecientos",
+  ];
+
+  const thousands = ["mil", "millón", "mil millones"];
+
+  if (num === 0) return "cero";
+  if (num < 0) return "menos " + numberToSpanish(-num);
+
+  let words = [];
+
+  // Handle millions
+  if (num >= 1000000) {
+    const millionPart = Math.floor(num / 1000000);
+    words.push(numberToSpanish(millionPart) + " " + thousands[1]);
+    num %= 1000000;
   }
+
+  // Handle thousands
+  if (num >= 1000) {
+    const thousandPart = Math.floor(num / 1000);
+    words.push(numberToSpanish(thousandPart) + " " + thousands[0]);
+    num %= 1000;
+  }
+
+  // Handle hundreds
+  if (num >= 100) {
+    const hundredPart = Math.floor(num / 100);
+    words.push(hundreds[hundredPart]);
+    num %= 100;
+  }
+
+  // Handle tens
+  if (num >= 30 || num == 20) {
+    const tenPart = Math.floor(num / 10);
+    words.push(tens[tenPart]);
+    num %= 10;
+    if (num > 0) {
+      words.push(units[num]);
+    }
+  } else if (num >= 20) {
+    words.push(specialTens[num - 20]);
+  } else if (num >= 1) {
+    words.push(units[num]);
+  }
+
+  return words.join(" ").trim();
 }
 
-console.log(numberToSpanish(21)); // 输出 "veintiuno"
 
 function read(text) {
   const utterThis = new SpeechSynthesisUtterance(
@@ -131,9 +179,8 @@ document.addEventListener("keydown", (event) => {
       return;
     }
 
-    answer.textContent = `您输入的是：${
-      inputTxt.value
-    }，正确答案是：${theNumber} (${numberToSpanish(theNumber)})`;
+    answer.innerHTML = `您输入的是：${inputTxt.value}
+    <br>正确答案是：${theNumber} (${numberToSpanish(theNumber)})`;
 
     if (theNumber == inputTxt.value) {
       answer.style.color = "green";
