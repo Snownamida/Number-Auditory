@@ -15,11 +15,19 @@ const read_only_no_input = document.querySelector("#read_only_no_input");
 const read_prefix = document.querySelector("#read_prefix");
 
 let voices = [];
+let voices_got = false;
 
 let theNumber = Math.floor(Math.random() * 101).toString();
 
 function populateVoiceList() {
+  if (voices_got) {
+    return;
+  }
+  console.log("populateVoiceList被调用");
   voices = synth.getVoices();
+  if (voices.length > 0) {
+    voices_got = true;
+  }
 
   for (const voice of voices) {
     const option = document.createElement("option");
@@ -41,7 +49,10 @@ function populateVoiceList() {
 
 populateVoiceList();
 if (speechSynthesis.onvoiceschanged !== undefined) {
-  speechSynthesis.onvoiceschanged = populateVoiceList;
+  speechSynthesis.onvoiceschanged = () => {
+    console.log("onvoiceschanged被调用");
+    populateVoiceList();
+  };
 }
 
 function numberToSpanish(num) {
@@ -151,7 +162,6 @@ function numberToSpanish(num) {
 
   return words.join(" ").trim();
 }
-
 
 function read(text) {
   const utterThis = new SpeechSynthesisUtterance(
