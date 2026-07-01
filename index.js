@@ -1,13 +1,16 @@
 const synth = window.speechSynthesis;
 
 const inputTxt = document.querySelector("#input");
-const voiceSelect = document.querySelector("select");
+const answerForm = document.querySelector("#answer-form");
+const languageSelect = document.querySelector("#language");
+const voiceSelect = document.querySelector("#voice");
 const answer = document.querySelector("#answer");
 
 const pitch = document.querySelector("#pitch");
 const pitchValue = document.querySelector(".pitch-value");
 const rate = document.querySelector("#rate");
 const rateValue = document.querySelector(".rate-value");
+const preset = document.querySelector("#preset");
 const rangeMin = document.querySelector("#range-min");
 const rangeMax = document.querySelector("#range-max");
 
@@ -16,184 +19,183 @@ const read_prefix = document.querySelector("#read_prefix");
 const decimal = document.querySelector("#decimal");
 const useComma = document.querySelector("#use-comma");
 
-let voices = [];
-let voices_got = false;
+const playBtn = document.querySelector("#play");
+const nextBtn = document.querySelector("#next");
 
-let theNumber = "";
+// ---------- 支持的语言 ----------
+const LANGS = {
+  es: { code: "es-ES", label: "西班牙语 Español", prefix: "El número es " },
+  fr: { code: "fr-FR", label: "法语 Français", prefix: "Le nombre est " },
+  en: { code: "en-US", label: "英语 English", prefix: "The number is " },
+  de: { code: "de-DE", label: "德语 Deutsch", prefix: "Die Zahl ist " },
+  ja: { code: "ja-JP", label: "日语 日本語", prefix: "数字は " },
+};
 
-function randomlyChangeNumber() {
-  theNumber = (
-    Number(rangeMin.value) +
-    Math.floor(
-      Math.random() *
-        (Number(rangeMax.value) - Number(rangeMin.value) + 1) *
-        (decimal.checked ? 100 : 1)
-    ) /
-      (decimal.checked ? 100 : 1)
-  ).toString();
+for (const [key, lang] of Object.entries(LANGS)) {
+  const option = document.createElement("option");
+  option.value = key;
+  option.textContent = lang.label;
+  languageSelect.appendChild(option);
 }
+languageSelect.value = localStorage.getItem("na-lang") || "es";
 
-randomlyChangeNumber();
+// ---------- 语音列表 ----------
+let voices = [];
 
 function populateVoiceList() {
-  if (voices_got) {
+  voices = synth.getVoices();
+  const langKey = languageSelect.value;
+  voiceSelect.innerHTML = "";
+
+  const matching = voices.filter((v) =>
+    v.lang.replace("_", "-").toLowerCase().startsWith(langKey)
+  );
+
+  if (matching.length === 0) {
+    const option = document.createElement("option");
+    option.textContent = "系统默认语音";
+    option.value = "";
+    voiceSelect.appendChild(option);
     return;
   }
-  console.log("populateVoiceList被调用");
-  voices = synth.getVoices();
-  if (voices.length > 0) {
-    voices_got = true;
-  }
 
-  for (const voice of voices) {
+  for (const voice of matching) {
     const option = document.createElement("option");
     option.textContent = `${voice.name} (${voice.lang})`;
-
-    if (voice.default) {
-      option.textContent += " — DEFAULT";
-    }
-
-    option.setAttribute("data-lang", voice.lang);
-    option.setAttribute("data-name", voice.name);
-    if (voice.lang === "es-ES" || voice.lang === "es_ES") {
-      option.setAttribute("selected", true);
-    }
-    // console.log(voice);
+    option.value = voice.name;
     voiceSelect.appendChild(option);
   }
 }
 
 populateVoiceList();
 if (speechSynthesis.onvoiceschanged !== undefined) {
-  speechSynthesis.onvoiceschanged = () => {
-    console.log("onvoiceschanged被调用");
-    populateVoiceList();
-  };
+  speechSynthesis.onvoiceschanged = populateVoiceList;
 }
 
+languageSelect.onchange = () => {
+  localStorage.setItem("na-lang", languageSelect.value);
+  populateVoiceList();
+};
+
+// ---------- 随机数字 ----------
+let theNumber = "";
+
+function randomlyChangeNumber() {
+  const min = Number(rangeMin.value);
+  const max = Number(rangeMax.value);
+  const factor = decimal.checked ? 100 : 1;
+  theNumber = (
+    min + Math.floor(Math.random() * (max - min + 1) * factor) / factor
+  ).toString();
+}
+
+randomlyChangeNumber();
+
+// ---------- 范围预设 ----------
+preset.onchange = () => {
+  const value = preset.value;
+  if (value === "custom") return;
+  if (value === "price") {
+    rangeMin.value = 0;
+    rangeMax.value = 500;
+    decimal.checked = true;
+  } else {
+    const [min, max] = value.split(",");
+    rangeMin.value = min;
+    rangeMax.value = max;
+    decimal.checked = false;
+  }
+  randomlyChangeNumber();
+};
+
+// ---------- 西班牙语数字转文字（用于显示答案） ----------
 function numberToSpanish(num) {
   num = Number(num);
 
   const units = [
-    "",
-    "uno",
-    "dos",
-    "tres",
-    "cuatro",
-    "cinco",
-    "seis",
-    "siete",
-    "ocho",
-    "nueve",
-    "diez",
-    "once",
-    "doce",
-    "trece",
-    "catorce",
-    "quince",
-    "dieciséis",
-    "diecisiete",
-    "dieciocho",
-    "diecinueve",
+    "", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho",
+    "nueve", "diez", "once", "doce", "trece", "catorce", "quince",
+    "dieciséis", "diecisiete", "dieciocho", "diecinueve",
   ];
 
   const tens = [
-    "",
-    "",
-    "",
-    "treinta",
-    "cuarenta",
-    "cincuenta",
-    "sesenta",
-    "setenta",
-    "ochenta",
-    "noventa",
+    "", "", "", "treinta", "cuarenta", "cincuenta", "sesenta", "setenta",
+    "ochenta", "noventa",
   ];
 
   const specialTens = [
-    "veinte",
-    "veintiuno",
-    "veintidós",
-    "veintitrés",
-    "veinticuatro",
-    "veinticinco",
-    "veintiséis",
-    "veintisiete",
-    "veintiocho",
-    "veintinueve",
+    "veinte", "veintiuno", "veintidós", "veintitrés", "veinticuatro",
+    "veinticinco", "veintiséis", "veintisiete", "veintiocho", "veintinueve",
   ];
 
   const hundreds = [
-    "",
-    "cien",
-    "doscientos",
-    "trescientos",
-    "cuatrocientos",
-    "quinientos",
-    "seiscientos",
-    "setecientos",
-    "ochocientos",
-    "novecientos",
+    "", "cien", "doscientos", "trescientos", "cuatrocientos", "quinientos",
+    "seiscientos", "setecientos", "ochocientos", "novecientos",
   ];
-
-  const thousands = ["mil", "millón", "mil millones"];
 
   if (num === 0) return "cero";
   if (num < 0) return "menos " + numberToSpanish(-num);
 
   let words = [];
 
-  // Handle decimal part
-  const [integerPart, decimalPart] = num.toString().split(".");
+  // 词尾 "uno" 在 mil/millones 前缩写：veintiuno → veintiún，treinta y uno → treinta y un
+  const apocope = (s) =>
+    s.replace(/veintiuno$/, "veintiún").replace(/uno$/, "un");
 
-  // Handle integer part
+  const [integerPart, decimalPart] = num.toString().split(".");
   let intNum = Number(integerPart);
 
-  // Handle millions
+  // 百万
   if (intNum >= 1000000) {
     const millionPart = Math.floor(intNum / 1000000);
-    words.push(numberToSpanish(millionPart) + " " + thousands[1]);
+    words.push(
+      millionPart === 1
+        ? "un millón"
+        : apocope(numberToSpanish(millionPart)) + " millones"
+    );
     intNum %= 1000000;
   }
 
-  // Handle thousands
+  // 千
   if (intNum >= 1000) {
     const thousandPart = Math.floor(intNum / 1000);
-    words.push(numberToSpanish(thousandPart) + " " + thousands[0]);
+    words.push(
+      thousandPart === 1
+        ? "mil"
+        : apocope(numberToSpanish(thousandPart)) + " mil"
+    );
     intNum %= 1000;
   }
 
-  // Handle hundreds
+  // 百：101–199 用 "ciento"，正好 100 用 "cien"
   if (intNum >= 100) {
     const hundredPart = Math.floor(intNum / 100);
-    words.push(hundreds[hundredPart]);
-    intNum %= 100;
+    const remainder = intNum % 100;
+    words.push(
+      hundredPart === 1 && remainder > 0 ? "ciento" : hundreds[hundredPart]
+    );
+    intNum = remainder;
   }
 
-  // Handle tens
+  // 十位与个位
   if (intNum >= 30) {
     const tenPart = Math.floor(intNum / 10);
-    words.push(tens[tenPart]);
     intNum %= 10;
-    if (intNum > 0) {
-      words.push(units[intNum]);
-    }
+    words.push(intNum > 0 ? tens[tenPart] + " y " + units[intNum] : tens[tenPart]);
   } else if (intNum >= 20) {
     words.push(specialTens[intNum - 20]);
   } else if (intNum >= 1) {
     words.push(units[intNum]);
   }
 
-  // Handle decimal part (if exists)
+  // 小数部分
   if (decimalPart) {
-    words.push("coma"); // Spanish uses "coma" instead of "punto" for decimal
+    words.push("coma"); // 西班牙语小数点读作 "coma"
     if (decimalPart.length === 2) {
-      // If the decimal part has two digits, treat it as a whole number
       words.push(numberToSpanish(Number(decimalPart)));
     } else {
-      // Otherwise, read each digit one by one
-      for (let digit of decimalPart) {
-        words.push(units[Number(digit)]);
+      for (const digit of decimalPart) {
+        words.push(digit === "0" ? "cero" : units[Number(digit)]);
       }
     }
   }
@@ -201,72 +203,134 @@ function numberToSpanish(num) {
   return words.join(" ").trim();
 }
 
+// ---------- 朗读 ----------
 function read(text) {
+  const lang = LANGS[languageSelect.value];
   if (useComma.checked) {
     text = text.replace(".", ",");
   }
+  synth.cancel(); // 防止连按时排队
   const utterThis = new SpeechSynthesisUtterance(
-    (read_prefix.checked ? "El nombre es :" : "") + text
+    (read_prefix.checked ? lang.prefix : "") + text
   );
-  const selectedOption =
-    voiceSelect.selectedOptions[0].getAttribute("data-name");
-  for (const voice of voices) {
-    if (voice.name === selectedOption) {
-      utterThis.voice = voice;
-    }
+  utterThis.lang = lang.code; // 即使没有匹配语音也按目标语言朗读
+  const selectedName = voiceSelect.value;
+  const voice = voices.find((v) => v.name === selectedName);
+  if (voice) {
+    utterThis.voice = voice;
   }
   utterThis.pitch = pitch.value;
   utterThis.rate = rate.value;
   synth.speak(utterThis);
 }
 
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    event.preventDefault();
+// ---------- 计分 ----------
+const stats = JSON.parse(
+  localStorage.getItem("na-stats") ||
+    '{"correct":0,"total":0,"streak":0,"best":0}'
+);
 
-    if (inputTxt.value === "") {
-      read(theNumber);
-      inputTxt.focus();
-      return;
-    }
-    answer.innerHTML = `您输入的是：${inputTxt.value}
-    <br>正确答案是：${theNumber} (${numberToSpanish(theNumber)})`;
+function renderStats() {
+  document.querySelector("#score-correct").textContent = stats.correct;
+  document.querySelector("#score-total").textContent = stats.total;
+  document.querySelector("#score-streak").textContent = stats.streak;
+  document.querySelector("#score-best").textContent = stats.best;
+}
 
-    if (theNumber == inputTxt.value) {
-      answer.style.color = "green";
-    } else {
-      answer.style.color = "red";
-    }
-
-    randomlyChangeNumber();
-
-    if (!read_only_no_input.checked) {
-      read(theNumber);
-    }
-
-    inputTxt.value = "";
-    inputTxt.focus();
+function recordAnswer(isCorrect) {
+  stats.total++;
+  if (isCorrect) {
+    stats.correct++;
+    stats.streak++;
+    stats.best = Math.max(stats.best, stats.streak);
+  } else {
+    stats.streak = 0;
   }
+  localStorage.setItem("na-stats", JSON.stringify(stats));
+  renderStats();
+}
+
+renderStats();
+
+document.querySelector("#score-reset").addEventListener("click", (event) => {
+  event.preventDefault();
+  stats.correct = stats.total = stats.streak = stats.best = 0;
+  localStorage.setItem("na-stats", JSON.stringify(stats));
+  renderStats();
+});
+
+// ---------- 判分 ----------
+function checkAnswer() {
+  if (inputTxt.value === "") {
+    // 输入为空：只重听，不判分
+    read(theNumber);
+    inputTxt.focus();
+    return;
+  }
+
+  // 逗号/点都算小数分隔符，避免「3,5」被判错
+  const given = inputTxt.value.trim().replace(",", ".").replace(/\s+/g, "");
+  const isCorrect = Number(given) === Number(theNumber);
+
+  const shownNumber = useComma.checked
+    ? theNumber.replace(".", ",")
+    : theNumber;
+  const words =
+    languageSelect.value === "es" ? ` (${numberToSpanish(theNumber)})` : "";
+  answer.innerHTML = `您输入的是：${inputTxt.value}
+    <br>正确答案是：${shownNumber}${words}`;
+  answer.style.color = isCorrect ? "green" : "red";
+
+  recordAnswer(isCorrect);
+  randomlyChangeNumber();
+
+  if (!read_only_no_input.checked) {
+    read(theNumber);
+  }
+
+  inputTxt.value = "";
+  inputTxt.focus();
+}
+
+answerForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  checkAnswer();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && document.activeElement !== inputTxt) {
+    event.preventDefault();
+    checkAnswer();
+  }
+});
+
+playBtn.addEventListener("click", () => {
+  read(theNumber);
+  inputTxt.focus();
+});
+
+nextBtn.addEventListener("click", () => {
+  randomlyChangeNumber();
+  answer.innerHTML = "&#8203;";
+  read(theNumber);
+  inputTxt.focus();
 });
 
 inputTxt.focus();
 
-pitch.onchange = () => {
+pitch.oninput = () => {
   pitchValue.textContent = pitch.value;
 };
 
-rate.onchange = () => {
+rate.oninput = () => {
   rateValue.textContent = rate.value;
 };
 
-rangeMax.onchange = () => {
+function markCustomPreset() {
+  preset.value = "custom";
   randomlyChangeNumber();
-};
+}
 
-rangeMin.onchange = () => {
-  randomlyChangeNumber();
-};
-
-decimal.onchange = () => {
-  randomlyChangeNumber();
-};
+rangeMax.onchange = markCustomPreset;
+rangeMin.onchange = markCustomPreset;
+decimal.onchange = () => randomlyChangeNumber();
