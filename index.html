@@ -1,132 +1,212 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>数字听力练习</title>
+    <title>数字听力练习 Number Auditory — 多语言数字听写训练（西语/法语/英语/德语/日语）</title>
+    <meta
+      name="description"
+      content="免费的外语数字听力练习工具：随机朗读西班牙语、法语、英语、德语、日语数字，输入听到的数字即时判分。支持自定义数字范围、年份、价格、小数、语速调节与连对统计。无需注册，无需 API Key，完全基于浏览器本地语音合成。"
+    />
+    <link rel="canonical" href="https://snownamida.github.io/Number-Auditory/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="数字听力练习 Number Auditory — 多语言数字听写训练" />
+    <meta
+      property="og:description"
+      content="随机朗读西/法/英/德/日语数字，输入听到的数字即时判分。免费、无需注册、纯浏览器运行。"
+    />
+    <meta property="og:url" content="https://snownamida.github.io/Number-Auditory/" />
+    <meta property="og:image" content="https://snownamida.github.io/Number-Auditory/screenshot.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔢</text></svg>"
+    />
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
       integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
       crossorigin="anonymous"
     />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "数字听力练习 Number Auditory",
+        "url": "https://snownamida.github.io/Number-Auditory/",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Any",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "description": "免费的多语言数字听力练习工具，支持西班牙语、法语、英语、德语、日语，基于浏览器本地语音合成。",
+        "author": { "@type": "Person", "name": "Snownamida", "url": "https://github.com/Snownamida" }
+      }
+    </script>
+    <style>
+      body {
+        background-image: url("bg.jpg");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+      }
+      .app-panel {
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(4px);
+        border-radius: 1rem;
+      }
+      .seo-panel {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 1rem;
+      }
+      #answer {
+        min-height: 4.5rem;
+      }
+      .btn-xl {
+        font-size: 1.25rem;
+        padding: 0.6rem 1.4rem;
+      }
+      @media (max-width: 576px) {
+        h1 {
+          font-size: 1.5rem;
+        }
+      }
+    </style>
   </head>
-  <body
-    style="
-      background-image: url('index.png');
-      background-size: cover;
-      background-position: center;
-    "
-  >
-    <div
-      class="container"
-      style="height: 100vh; display: flex; flex-direction: column"
-    >
-      <div style="flex: 1">
-        <h1 class="text-center">西语数字听力练习</h1>
-        <p class="text-center">
-          欢迎使用西语数字听力练习。在文本框中输入你听到的数字，按回车键提交。
+  <body>
+    <div class="container py-3" style="max-width: 900px">
+      <main class="app-panel p-3 p-md-4 my-2">
+        <h1 class="text-center">数字听力练习</h1>
+        <p class="text-center text-secondary mb-2">
+          点击「🔊 播放」听数字，在文本框中输入你听到的数字，按回车或「提交」判分。
         </p>
-      </div>
 
-      <div
-        style="
-          flex: 3;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-        "
-      >
-        <!-- &#8203;是一个零宽空格,占位用的 -->
-        <p class="text-center h1" id="answer">&#8203;</p>
-
-        <div class="d-flex justify-content-center">
-          <input type="text" id="input" class="form-control-lg" />
+        <div class="d-flex justify-content-center flex-wrap gap-3 mb-2" id="score-bar">
+          <span>✅ 答对 <b id="score-correct">0</b> / <b id="score-total">0</b></span>
+          <span>🔥 连对 <b id="score-streak">0</b>（最佳 <b id="score-best">0</b>）</span>
+          <a href="#" id="score-reset" class="link-secondary small align-self-center">重置</a>
         </div>
-      </div>
 
-      <div style="flex: 1">
-        <div class="row">
-          <div class="col-12 col-md-6 d-flex justify-content-center">
-            <div>
-              <div>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="2"
-                  value="1"
-                  step="0.1"
-                  id="rate"
-                />
-                <label for="rate">速率</label>
-                <span class="rate-value">1</span>
-              </div>
+        <!-- &#8203; 是一个零宽空格，占位用的 -->
+        <p class="text-center h4" id="answer">&#8203;</p>
 
-              <div>
-                <input
-                  type="range"
-                  min="0"
-                  max="2"
-                  value="1"
-                  step="0.1"
-                  id="pitch"
-                />
-                <label for="pitch">音调</label>
-                <span class="pitch-value">1</span>
-              </div>
+        <form id="answer-form" class="d-flex justify-content-center gap-2 flex-wrap mb-3">
+          <input
+            type="text"
+            id="input"
+            class="form-control form-control-lg"
+            style="max-width: 16rem"
+            inputmode="decimal"
+            autocomplete="off"
+            placeholder="输入听到的数字"
+            aria-label="输入听到的数字"
+          />
+          <button type="submit" class="btn btn-primary btn-lg">提交</button>
+        </form>
 
-              <div>
-                <input type="number" value="0" id="range-min" />
-                <label for="range-min">最小值</label>
+        <div class="d-flex justify-content-center gap-2 mb-4">
+          <button type="button" id="play" class="btn btn-success btn-xl">🔊 播放 / 重听</button>
+          <button type="button" id="next" class="btn btn-outline-secondary btn-xl">⏭ 换一个</button>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <div class="mb-2">
+              <label for="language" class="form-label mb-1">语言</label>
+              <select id="language" class="form-select"></select>
+            </div>
+            <div class="mb-2">
+              <label for="voice" class="form-label mb-1">语音</label>
+              <select id="voice" class="form-select"></select>
+            </div>
+            <div class="mb-2">
+              <label for="preset" class="form-label mb-1">数字范围预设</label>
+              <select id="preset" class="form-select">
+                <option value="custom">自定义</option>
+                <option value="0,100" selected>0 – 100</option>
+                <option value="0,1000">0 – 1 000</option>
+                <option value="0,1000000">0 – 1 000 000（大数字）</option>
+                <option value="1900,2100">年份 1900 – 2100</option>
+                <option value="price">价格 0 – 500（含小数）</option>
+              </select>
+            </div>
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <label for="range-min" class="form-label mb-1">最小值</label>
+                <input type="number" value="0" id="range-min" class="form-control" />
               </div>
-              <div>
-                <input type="number" value="100" id="range-max" />
-                <label for="range-max">最大值</label>
+              <div class="col-6">
+                <label for="range-max" class="form-label mb-1">最大值</label>
+                <input type="number" value="100" id="range-max" class="form-control" />
               </div>
             </div>
           </div>
 
-          <div class="col-12 col-md-6 d-flex justify-content-center">
-            <div>
-              <div>
-                <input type="checkbox" id="read_only_no_input" />
-                <label for="read_only_no_input"
-                  >仅输入框为空时按回车才朗读
-                </label>
-              </div>
-
-              <div>
-                <input type="checkbox" id="read_prefix" />
-                <label for="read_prefix">朗读时添加引导词</label>
-              </div>
-
-              <div>
-                <input type="checkbox" id="decimal" />
-                <label for="decimal">添加小数</label>
-              </div>
-
-              <div>
-                <input type="checkbox" id="use-comma" />
-                <label for="use-comma">用逗号作为小数分隔符</label>
-              </div>
+          <div class="col-12 col-md-6">
+            <div class="mb-1">
+              <label for="rate" class="form-label mb-0">语速 <span class="rate-value">1</span></label>
+              <input type="range" class="form-range" min="0.5" max="2" value="1" step="0.1" id="rate" />
+            </div>
+            <div class="mb-2">
+              <label for="pitch" class="form-label mb-0">音调 <span class="pitch-value">1</span></label>
+              <input type="range" class="form-range" min="0" max="2" value="1" step="0.1" id="pitch" />
+            </div>
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="read_only_no_input" />
+              <label class="form-check-label" for="read_only_no_input">仅输入框为空时按回车才朗读</label>
+            </div>
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="read_prefix" />
+              <label class="form-check-label" for="read_prefix">朗读时添加引导词</label>
+            </div>
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="decimal" />
+              <label class="form-check-label" for="decimal">添加小数</label>
+            </div>
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="use-comma" />
+              <label class="form-check-label" for="use-comma">用逗号作为小数分隔符</label>
             </div>
           </div>
         </div>
+      </main>
 
-        <div class="d-flex justify-content-center">
-          <select></select>
-        </div>
-      </div>
-      <p class="text-center">
-        Author: <a href="https://github.com/Snownamida">Jixiang SUN</a>
-      </p>
+      <section class="seo-panel p-3 p-md-4 my-3">
+        <h2 class="h5">关于本工具 · About Number Auditory</h2>
+        <p>
+          数字听力练习（Number Auditory）是一个免费的在线外语数字听写训练工具。它会随机生成一个数字并用
+          <strong>西班牙语、法语、英语、德语或日语</strong>朗读出来，你输入听到的数字即可立即得到对错反馈。
+          数字（价格、年份、电话、数量）是外语听力中最容易出错的部分，高频的专项训练能显著提高反应速度。
+        </p>
+        <p>
+          Number Auditory is a free online number-dictation trainer for language learners: it speaks random
+          numbers in Spanish, French, English, German or Japanese and instantly checks your answer.
+        </p>
+        <ul>
+          <li>🌍 五种语言：西班牙语 / 法语 / 英语 / 德语 / 日语</li>
+          <li>🎯 范围预设：0–100、0–1000、大数字、年份、价格（小数）</li>
+          <li>🏆 计分与连对统计，进度自动保存在本地</li>
+          <li>🎚 语速、音调可调，支持重听</li>
+          <li>📱 手机、平板、电脑均可使用，无需注册</li>
+        </ul>
+        <h2 class="h5 mt-4">常见问题 · FAQ</h2>
+        <p class="mb-1"><strong>需要联网或 API Key 吗？</strong></p>
+        <p>不需要。朗读使用浏览器内置的本地语音合成（Web Speech API），免费且离线可用。</p>
+        <p class="mb-1"><strong>没有声音怎么办？</strong></p>
+        <p>请先点击一次「🔊 播放」按钮（浏览器要求用户先交互才能发声），并确认系统已安装对应语言的语音。</p>
+        <p class="mb-1"><strong>手机上能用吗？</strong></p>
+        <p>可以。iOS Safari 与 Android Chrome 均自带多语言语音，直接打开网页即可练习。</p>
+      </section>
+
+      <footer class="text-center text-white pb-3" style="text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6)">
+        <p class="mb-1">
+          Author: <a class="link-light" href="https://github.com/Snownamida">Snownamida</a> ·
+          <a class="link-light" href="https://github.com/Snownamida/Number-Auditory">GitHub 源码</a> ·
+          <a class="link-light" href="https://ko-fi.com/snownamida" target="_blank" rel="noopener"
+            >☕ 请我喝咖啡 / Support</a
+          >
+        </p>
+      </footer>
     </div>
 
     <script src="index.js"></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-      crossorigin="anonymous"
-    ></script>
   </body>
 </html>
