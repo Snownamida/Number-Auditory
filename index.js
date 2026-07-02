@@ -22,7 +22,9 @@ const useComma = document.querySelector("#use-comma");
 const playBtn = document.querySelector("#play");
 const nextBtn = document.querySelector("#next");
 
-// ---------- 支持的语言 ----------
+// ---------- 语言 ----------
+// 语言列表由浏览器实际安装的语音动态生成（原版行为）。
+// LANGS 仅提供少数语言的“报数前缀”，以及无任何语音时的兜底列表。
 const LANGS = {
   es: { code: "es-ES", label: "西班牙语 Español", prefix: "El número es " },
   fr: { code: "fr-FR", label: "法语 Français", prefix: "Le nombre est " },
@@ -31,19 +33,45 @@ const LANGS = {
   ja: { code: "ja-JP", label: "日语 日本語", prefix: "数字は " },
 };
 
-for (const [key, lang] of Object.entries(LANGS)) {
-  const option = document.createElement("option");
-  option.value = key;
-  option.textContent = lang.label;
-  languageSelect.appendChild(option);
-}
-languageSelect.value = localStorage.getItem("na-lang") || "es";
+// 语言代码 → 中文显示名（如 "pt" → "葡萄牙语 pt"）
+const langDisplay = (() => {
+  try {
+    const dn = new Intl.DisplayNames(["zh-CN"], { type: "language" });
+    return (code) => {
+      const name = dn.of(code);
+      return name && name !== code ? `${name} (${code})` : code;
+    };
+  } catch {
+    return (code) => LANGS[code]?.label ?? code;
+  }
+})();
 
-// ---------- 语音列表 ----------
 let voices = [];
 
+function populateLanguageList() {
+  const previous =
+    languageSelect.value || localStorage.getItem("na-lang") || "es";
+  // 浏览器所有语音的主语言子标签，去重
+  const codes = [
+    ...new Set(
+      voices.map((v) => v.lang.replace("_", "-").split("-")[0].toLowerCase())
+    ),
+  ];
+  const available = codes.length ? codes : Object.keys(LANGS); // 兜底
+  available.sort((a, b) => langDisplay(a).localeCompare(langDisplay(b), "zh"));
+
+  languageSelect.innerHTML = "";
+  for (const code of available) {
+    const option = document.createElement("option");
+    option.value = code;
+    option.textContent = langDisplay(code);
+    languageSelect.appendChild(option);
+  }
+  languageSelect.value = available.includes(previous) ? previous : available[0];
+}
+
+// ---------- 语音列表 ----------
 function populateVoiceList() {
-  voices = synth.getVoices();
   const langKey = languageSelect.value;
   voiceSelect.innerHTML = "";
 
@@ -67,9 +95,16 @@ function populateVoiceList() {
   }
 }
 
-populateVoiceList();
+function refreshVoicesAndLanguages() {
+  voices = synth.getVoices();
+  populateLanguageList();
+  populateVoiceList();
+}
+
+refreshVoicesAndLanguages();
 if (speechSynthesis.onvoiceschanged !== undefined) {
-  speechSynthesis.onvoiceschanged = populateVoiceList;
+  // Chrome 首次加载后才异步返回完整语音列表
+  speechSynthesis.onvoiceschanged = refreshVoicesAndLanguages;
 }
 
 languageSelect.onchange = () => {
@@ -205,19 +240,20 @@ function numberToSpanish(num) {
 
 // ---------- 朗读 ----------
 function read(text) {
-  const lang = LANGS[languageSelect.value];
+  const langKey = languageSelect.value;
+  const prefix = read_prefix.checked ? (LANGS[langKey]?.prefix ?? "") : "";
   if (useComma.checked) {
     text = text.replace(".", ",");
   }
   synth.cancel(); // 防止连按时排队
-  const utterThis = new SpeechSynthesisUtterance(
-    (read_prefix.checked ? lang.prefix : "") + text
-  );
-  utterThis.lang = lang.code; // 即使没有匹配语音也按目标语言朗读
+  const utterThis = new SpeechSynthesisUtterance(prefix + text);
   const selectedName = voiceSelect.value;
   const voice = voices.find((v) => v.name === selectedName);
   if (voice) {
     utterThis.voice = voice;
+    utterThis.lang = voice.lang; // 任意语言：跟随所选语音
+  } else {
+    utterThis.lang = LANGS[langKey]?.code ?? langKey; // 无语音时的兜底
   }
   utterThis.pitch = pitch.value;
   utterThis.rate = rate.value;
