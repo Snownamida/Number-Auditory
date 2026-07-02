@@ -1,6 +1,6 @@
 # 数字听力练习 Number Auditory
 
-> 🌐 **在线使用 / Try it online:** <https://snownamida.github.io/Number-Auditory/>
+> 🌐 **在线使用 / Try it online:** <https://numbers.snownamida.top/>
 
 免费的多语言**数字听力（数字听写）练习工具**：随机生成一个数字，用外语朗读出来，你输入听到的数字，立即判分。数字（价格、年份、电话、数量）是外语听力中最容易卡壳的部分，高频专项训练能显著提升反应速度。
 
@@ -20,7 +20,7 @@ A free online **number-dictation trainer** for language learners: it speaks rand
 
 ## 🚀 使用 Usage
 
-1. 打开 <https://snownamida.github.io/Number-Auditory/>
+1. 打开 <https://numbers.snownamida.top/>
 2. 选择语言与数字范围，点击「🔊 播放」
 3. 在文本框输入听到的数字，按回车或「提交」
 4. 输入框为空时按回车 = 重听当前数字
